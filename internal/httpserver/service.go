@@ -56,11 +56,7 @@ func New(ctx context.Context, config *model.Cfg, api *apiv1.Client, logger *logg
 	s.gin.Use(s.middlewareDuration(ctx))
 	s.gin.Use(s.middlewareLogger(ctx))
 	s.gin.Use(s.middlewareCrash(ctx))
-	s.gin.NoRoute(func(c *gin.Context) {
-		status := http.StatusNotFound
-		p := helpers.Problem404()
-		c.JSON(status, gin.H{"error": p, "data": nil})
-	})
+	s.gin.NoRoute(func(c *gin.Context) { c.JSON(http.StatusNotFound, helpers.Problem404()) })
 
 	s.regEndpoint(ctx, "api/v1/:schoolName/ladokinfo", "POST", s.endpointLadokInfo)
 	s.regEndpoint(ctx, "api/v1/schoolinfo", "GET", s.endpointSchoolInfo)
