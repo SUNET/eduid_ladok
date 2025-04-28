@@ -45,7 +45,7 @@ type Cfg struct {
 	Redis struct {
 		DB                  int      `yaml:"db" validate:"required"`
 		Addr                string   `yaml:"host" validate:"required_without_all=SentinelHosts SentinelServiceName"`
-		SentinelHosts       []string `yaml:"sentinel_hosts" validate:"required_without=Addr,omitempty,min=2,max=4"`
+		SentinelHosts       []string `yaml:"sentinel_hosts" validate:"required_without=Addr,omitempty,min=2"`
 		SentinelServiceName string   `yaml:"sentinel_service_name" validate:"required_with=SentinelHosts"`
 	} `yaml:"redis"`
 }
