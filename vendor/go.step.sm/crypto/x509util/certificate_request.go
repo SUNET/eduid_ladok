@@ -10,6 +10,7 @@ import (
 	"encoding/json"
 
 	"github.com/pkg/errors"
+	"go.step.sm/crypto/internal/utils"
 	"golang.org/x/crypto/cryptobyte"
 	cryptobyte_asn1 "golang.org/x/crypto/cryptobyte/asn1"
 )
@@ -45,6 +46,7 @@ type certificateRequest struct {
 type CertificateRequest struct {
 	Version            int                      `json:"version"`
 	Subject            Subject                  `json:"subject"`
+	RawSubject         []byte                   `json:"rawSubject"`
 	DNSNames           MultiString              `json:"dnsNames"`
 	EmailAddresses     MultiString              `json:"emailAddresses"`
 	IPAddresses        MultiIP                  `json:"ipAddresses"`
@@ -115,6 +117,7 @@ func NewCertificateRequestFromX509(cr *x509.CertificateRequest) *CertificateRequ
 	return &CertificateRequest{
 		Version:            cr.Version,
 		Subject:            newSubject(cr.Subject),
+		RawSubject:         cr.RawSubject,
 		DNSNames:           cr.DNSNames,
 		EmailAddresses:     cr.EmailAddresses,
 		IPAddresses:        cr.IPAddresses,
@@ -134,6 +137,7 @@ func (c *CertificateRequest) GetCertificateRequest() (*x509.CertificateRequest, 
 	cert := c.GetCertificate().GetCertificate()
 	asn1Data, err := x509.CreateCertificateRequest(rand.Reader, &x509.CertificateRequest{
 		Subject:            cert.Subject,
+		RawSubject:         cert.RawSubject,
 		DNSNames:           cert.DNSNames,
 		IPAddresses:        cert.IPAddresses,
 		EmailAddresses:     cert.EmailAddresses,
@@ -173,7 +177,7 @@ func (c *CertificateRequest) addChallengePassword(asn1Data []byte) ([]byte, erro
 		child.AddASN1ObjectIdentifier(oidChallengePassword)
 		child.AddASN1(cryptobyte_asn1.SET, func(value *cryptobyte.Builder) {
 			switch {
-			case isPrintableString(c.ChallengePassword, true, true):
+			case utils.IsPrintableString(c.ChallengePassword, true, true):
 				value.AddASN1(cryptobyte_asn1.PrintableString, func(s *cryptobyte.Builder) {
 					s.AddBytes([]byte(c.ChallengePassword))
 				})
