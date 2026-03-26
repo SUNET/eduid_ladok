@@ -1,3 +1,4 @@
+disabled: true
 triggers:
   cron: "@weekly"
 slack:
