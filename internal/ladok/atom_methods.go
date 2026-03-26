@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"eduid_ladok/pkg/helpers"
 	"eduid_ladok/pkg/model"
 
 	"github.com/go-redis/redis/v8"
@@ -13,9 +14,9 @@ import (
 )
 
 func (s *AtomService) run(ctx context.Context) {
-	superFeed, _, err := s.ladok.Feed.Recent(ctx)
+	superFeed, resp, err := s.ladok.Feed.Recent(ctx)
 	if err != nil {
-		s.logger.Warn("recent", "error", err)
+		s.logger.Warn("recent_feed_error", "error", err, "response", helpers.FormatResponse(resp))
 	}
 	if superFeed == nil {
 		s.logger.Warn("Feed return nil")
@@ -30,7 +31,7 @@ func (s *AtomService) run(ctx context.Context) {
 
 	ids, err := s.unprocessedIDs(ctx, currentID)
 	if err != nil {
-		s.logger.Warn(err.Error())
+		s.logger.Warn("unprocessed_ids_error", "error", err, "currentID", currentID)
 		return
 	}
 	if ids == nil {
@@ -39,9 +40,9 @@ func (s *AtomService) run(ctx context.Context) {
 	}
 
 	for _, id := range ids {
-		superFeed, _, err := s.ladok.Feed.Historical(ctx, &goladok3.HistoricalReq{ID: id})
+		superFeed, resp, err := s.ladok.Feed.Historical(ctx, &goladok3.HistoricalReq{ID: id})
 		if err != nil {
-			s.logger.Warn("Error", err)
+			s.logger.Warn("historical_feed_error", "error", err, "feedID", id, "response", helpers.FormatResponse(resp))
 			return
 		}
 		s.process(ctx, superFeed)
@@ -61,7 +62,7 @@ func (s *AtomService) process(ctx context.Context, superFeed *ladoktypes.SuperFe
 		}
 	}
 	if err := s.addToCache(ctx, superFeed.ID); err != nil {
-		s.logger.Warn("addToCache", err)
+		s.logger.Warn("add_to_cache_error", "error", err, "feedID", superFeed.ID)
 	}
 }
 

@@ -2,8 +2,10 @@ package ladok
 
 import (
 	"context"
+	"fmt"
 	"time"
 
+	"eduid_ladok/pkg/helpers"
 	"eduid_ladok/pkg/logger"
 	"eduid_ladok/pkg/model"
 
@@ -50,9 +52,9 @@ func (s *RestService) StatusLadok(ctx context.Context) *model.Status {
 		Timestamp:  time.Now(),
 	}
 
-	data, _, err := s.Ladok.Kataloginformation.GetGrunddataLarosatesinformation(ctx)
+	data, resp, err := s.Ladok.Kataloginformation.GetGrunddataLarosatesinformation(ctx)
 	if err != nil {
-		status.Message = err.Error()
+		status.Message = fmt.Sprintf("%s %s", err.Error(), helpers.FormatResponse(resp))
 		return status
 	}
 

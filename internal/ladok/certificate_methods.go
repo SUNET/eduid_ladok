@@ -47,7 +47,7 @@ func (s *CertificateService) importCertificate(ctx context.Context) error {
 	s.PrivateKeyPEM = keyFile
 
 	if s.isCertificateInvalid(ctx) {
-		s.logger.Warn(model.ErrCertificateNotValid.Error())
+		return model.ErrCertificateNotValid
 	}
 
 	return nil

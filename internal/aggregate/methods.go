@@ -2,6 +2,7 @@ package aggregate
 
 import (
 	"context"
+	"eduid_ladok/pkg/helpers"
 	"eduid_ladok/pkg/model"
 
 	"github.com/masv3971/goladok3"
@@ -15,11 +16,11 @@ func (s *Service) run(ctx context.Context) {
 		case msg := <-s.ladok.Atom.Channel:
 			s.logger.Info("received message", msg.Event.EntryID, msg.Event.EventTypeName)
 
-			reply, _, err := s.ladok.Rest.Ladok.Studentinformation.GetAktivPaLarosate(ctx, &goladok3.GetAktivPaLarosateReq{
+			reply, resp, err := s.ladok.Rest.Ladok.Studentinformation.GetAktivPaLarosate(ctx, &goladok3.GetAktivPaLarosateReq{
 				UID: msg.Event.StudentUID,
 			})
 			if err != nil {
-				s.logger.Warn(err.Error())
+				s.logger.Warn("get_aktiv_pa_larosate_error", "error", err, "response", helpers.FormatResponse(resp))
 			}
 			if reply != nil {
 				for _, r := range reply.Studentkopplingar {
@@ -37,9 +38,6 @@ func (s *Service) run(ctx context.Context) {
 			//		Attributes: []string{},
 			//	},
 			//})
-			if err != nil {
-				s.logger.Warn(err.Error())
-			}
 			//s.logger.Info("Aktiv pa larosate", reply)
 
 			//s.

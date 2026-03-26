@@ -46,7 +46,7 @@ func New(ctx context.Context, config *model.Cfg, wg *sync.WaitGroup, schoolName 
 	}
 
 	if err := s.getSchoolID(ctx); err != nil {
-		s.logger.Warn("getSchool", "error", err.Error())
+		s.logger.Warn("getSchoolID", "school", schoolName, "error", err.Error())
 	}
 
 	return s, nil

@@ -2,13 +2,15 @@ package ladok
 
 import (
 	"context"
+	"eduid_ladok/pkg/helpers"
 	"errors"
+	"fmt"
 )
 
 func (s *Service) getSchoolID(ctx context.Context) error {
-	r, _, err := s.Rest.Ladok.Kataloginformation.GetGrunddataLarosatesinformation(ctx)
+	r, resp, err := s.Rest.Ladok.Kataloginformation.GetGrunddataLarosatesinformation(ctx)
 	if err != nil {
-		return err
+		return fmt.Errorf("%w %s", err, helpers.FormatResponse(resp))
 	}
 
 	if len(r.Larosatesinformation) == 0 {

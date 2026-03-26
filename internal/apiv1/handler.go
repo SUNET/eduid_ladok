@@ -2,8 +2,10 @@ package apiv1
 
 import (
 	"context"
+	"eduid_ladok/pkg/helpers"
 	"eduid_ladok/pkg/model"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/masv3971/goladok3"
@@ -30,11 +32,11 @@ func (c *Client) LadokInfo(ctx context.Context, indata *RequestLadokInfo) (*Repl
 		return nil, errors.New("Error, can't find any matching ladok instance")
 	}
 
-	reply, _, err := ladok.Rest.Ladok.Studentinformation.GetStudent(ctx, &goladok3.GetStudentReq{
+	reply, resp, err := ladok.Rest.Ladok.Studentinformation.GetStudent(ctx, &goladok3.GetStudentReq{
 		Personnummer: indata.Data.NIN,
 	})
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%w %s", err, helpers.FormatResponse(resp))
 	}
 
 	replyLadokInfo := &ReplyLadokInfo{

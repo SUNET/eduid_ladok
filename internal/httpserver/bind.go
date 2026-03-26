@@ -9,10 +9,16 @@ import (
 
 func (s *Service) bindRequest(c *gin.Context, v interface{}) error {
 	if c.ContentType() == gin.MIMEJSON {
-		_ = c.ShouldBindJSON(v)
+		if err := c.ShouldBindJSON(v); err != nil {
+			s.logger.Warn("bind_json_error", "error", err)
+		}
 	}
-	_ = s.bindRequestQuery(c, v)
-	_ = c.ShouldBindQuery(v)
+	if err := s.bindRequestQuery(c, v); err != nil {
+		s.logger.Warn("bind_query_map_error", "error", err)
+	}
+	if err := c.ShouldBindQuery(v); err != nil {
+		s.logger.Warn("bind_query_error", "error", err)
+	}
 	return c.ShouldBindUri(v)
 }
 

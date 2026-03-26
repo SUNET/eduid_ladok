@@ -3,6 +3,8 @@ package helpers
 import (
 	"encoding/json"
 	"fmt"
+	"io"
+	"net/http"
 	"strings"
 
 	"github.com/go-playground/validator/v10"
@@ -85,6 +87,18 @@ func formatJSONUnmarshalTypeError(err *json.UnmarshalTypeError) []map[string]int
 			"actual":   err.Value,
 		},
 	}
+}
+
+// FormatResponse returns a summary of an HTTP response for logging purposes.
+func FormatResponse(resp *http.Response) string {
+	if resp == nil {
+		return "(no response)"
+	}
+	body, _ := io.ReadAll(resp.Body)
+	if len(body) > 0 {
+		return fmt.Sprintf("(status=%d, body=%s)", resp.StatusCode, body)
+	}
+	return fmt.Sprintf("(status=%d)", resp.StatusCode)
 }
 
 func Problem404() *problems.Problem {
