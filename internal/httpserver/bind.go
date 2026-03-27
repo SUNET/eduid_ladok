@@ -25,8 +25,8 @@ func (s *Service) bindRequest(c *gin.Context, v any) error {
 func (s *Service) bindRequestQuery(c *gin.Context, v any) error {
 	refV := reflect.ValueOf(v).Elem()
 	refT := reflect.ValueOf(v).Elem().Type()
-	for field := range refT.Fields() {
-		field := field
+	for i := range refT.NumField() {
+		field := refT.Field(i)
 		fieldType := field.Type
 		fieldKey := field.Tag.Get("form")
 		if fieldKey == "" {
