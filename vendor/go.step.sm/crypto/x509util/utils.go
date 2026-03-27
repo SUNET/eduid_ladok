@@ -55,6 +55,9 @@ func SplitSANs(sans []string) (dnsNames []string, ips []net.IP, emails []string,
 	emails = []string{}
 	uris = []*url.URL{}
 	for _, san := range sans {
+		if san == "" {
+			continue
+		}
 		ip := net.ParseIP(san)
 		u, err := url.Parse(san)
 		switch {
@@ -107,7 +110,7 @@ type subjectPublicKeyInfo struct {
 	SubjectPublicKey asn1.BitString
 }
 
-// generateSubjectKeyID generates the key identifier according the the RFC 5280
+// GenerateSubjectKeyID generates the key identifier according the the RFC 5280
 // section 4.2.1.2.
 //
 // The keyIdentifier is composed of the 160-bit SHA-1 hash of the value of the
@@ -116,7 +119,7 @@ type subjectPublicKeyInfo struct {
 //
 // If FIPS 140-3 mode is enabled, instead of SHA-1, it will use the leftmost
 // 160-bits of the SHA-256 hash according to RFC 7093 section 2.
-func generateSubjectKeyID(pub crypto.PublicKey) ([]byte, error) {
+func GenerateSubjectKeyID(pub crypto.PublicKey) ([]byte, error) {
 	b, err := x509.MarshalPKIXPublicKey(pub)
 	if err != nil {
 		return nil, errors.Wrap(err, "error marshaling public key")
