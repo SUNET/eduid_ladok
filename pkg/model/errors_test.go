@@ -2,6 +2,7 @@ package model
 
 import (
 	"errors"
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -24,7 +25,10 @@ func TestErrors(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			assert.EqualError(t, tt.err, tt.msg)
-			assert.True(t, errors.Is(tt.err, tt.err))
+
+			wrapped := fmt.Errorf("wrap: %w", tt.err)
+			assert.True(t, errors.Is(wrapped, tt.err))
+			assert.False(t, errors.Is(tt.err, wrapped))
 		})
 	}
 }
