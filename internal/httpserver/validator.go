@@ -29,7 +29,7 @@ func (v *defaultValidator) Engine() any {
 func kindOfData(data any) reflect.Kind {
 	value := reflect.ValueOf(data)
 	valueType := value.Kind()
-	if valueType == reflect.Pointer {
+	if valueType == reflect.Ptr {
 		valueType = value.Elem().Kind()
 	}
 	return valueType
