@@ -17,7 +17,8 @@
 				"zenor.makefile-creator",
 				"bungcip.better-toml",
 				"ms-azuretools.vscode-docker",
-				"redhat.vscode-yaml"
+				"redhat.vscode-yaml",
+				"anthropic.claude-code"
 			]
 		}
 	},
