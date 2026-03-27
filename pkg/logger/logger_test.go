@@ -38,3 +38,19 @@ func TestLogger_Methods(t *testing.T) {
 	log.Error("error message", "key", "value")
 	log.Debug("debug message", "key", "value")
 }
+
+func TestNewForTest(t *testing.T) {
+	log := NewForTest(t)
+	assert.NotNil(t, log)
+
+	// These should not panic
+	assert.NotPanics(t, func() {
+		log.Info("info message", "key", "value")
+		log.Warn("warn message", "key", "value")
+		log.Error("error message", "key", "value")
+		log.Debug("debug message", "key", "value")
+	})
+
+	child := log.New("child")
+	assert.NotNil(t, child)
+}
