@@ -3,7 +3,7 @@ package model
 import (
 	"time"
 
-	"github.com/masv3971/goladok3/ladoktypes"
+	"github.com/SUNET/goladok3/ladoktypes"
 )
 
 // LadokToAggregateMSG is the message on the channel, ladok-atom --> aggregate

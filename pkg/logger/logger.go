@@ -39,26 +39,26 @@ func (l *Logger) New(path string) *Logger {
 }
 
 // Warn log
-func (l *Logger) Warn(msg string, args ...interface{}) {
+func (l *Logger) Warn(msg string, args ...any) {
 	l.Logger.Sugar().Warnw(msg, args...)
 }
 
 // Error log
-func (l *Logger) Error(msg string, args ...interface{}) {
+func (l *Logger) Error(msg string, args ...any) {
 	l.Logger.Sugar().Errorw(msg, args...)
 }
 
 // Fatal log
-func (l *Logger) Fatal(msg string, args ...interface{}) {
+func (l *Logger) Fatal(msg string, args ...any) {
 	l.Logger.Sugar().Fatalw(msg, args...)
 }
 
 // Debug log
-func (l *Logger) Debug(msg string, args ...interface{}) {
+func (l *Logger) Debug(msg string, args ...any) {
 	l.Logger.Sugar().Debugw(msg, args...)
 }
 
 // Info log
-func (l *Logger) Info(msg string, args ...interface{}) {
+func (l *Logger) Info(msg string, args ...any) {
 	l.Logger.Sugar().Infow(msg, args...)
 }

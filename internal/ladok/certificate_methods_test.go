@@ -1,15 +1,15 @@
 package ladok
 
 import (
-	"context"
+	"eduid_ladok/pkg/logger"
 	"eduid_ladok/pkg/model"
 	"fmt"
 	"os"
 	"path/filepath"
 	"testing"
 
-	"github.com/masv3971/goladok3/ladokmocks"
-	"github.com/masv3971/goladok3/ladoktypes"
+	"github.com/SUNET/goladok3/ladokmocks"
+	"github.com/SUNET/goladok3/ladoktypes"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -53,12 +53,51 @@ func TestImportCertificate(t *testing.T) {
 
 	for _, tt := range tts {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := service.Certificate.importCertificate(context.TODO()); err != nil {
+			if err := service.Certificate.importCertificate(t.Context()); err != nil {
 				assert.EqualError(t, err, tt.want.Error())
 			}
 
 			assert.NotNil(t, service.Certificate.Cert)
 
+		})
+	}
+}
+
+func TestImportCertificateMissingFiles(t *testing.T) {
+	tts := []struct {
+		name      string
+		setupDir  func(t *testing.T) string
+		wantErr   bool
+	}{
+		{
+			name: "empty directory - no cert or key",
+			setupDir: func(t *testing.T) string {
+				return t.TempDir()
+			},
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tts {
+		t.Run(tt.name, func(t *testing.T) {
+			dir := tt.setupDir(t)
+			cfg := &model.Cfg{}
+			cfg.Ladok.Certificate.Folder = dir
+
+			testLog := logger.New("test", true)
+
+			svc := &Service{
+				config:     cfg,
+				schoolName: "testSchoolName",
+			}
+			certService := &CertificateService{
+				Service: svc,
+				logger:  testLog,
+			}
+			err := certService.importCertificate(t.Context())
+			if tt.wantErr {
+				assert.Error(t, err)
+			}
 		})
 	}
 }
@@ -94,7 +133,7 @@ func TestCheckValidTime(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			service, _, _, _ := mockService(t, 200, tt.have.notBefore, tt.have.notAfter, t.TempDir())
 
-			got, _ := service.Certificate.CheckValidTime(context.TODO())
+			got, _ := service.Certificate.CheckValidTime(t.Context())
 
 			assert.Equal(t, tt.want, got, "status should be equal")
 		})
@@ -170,7 +209,7 @@ func TestIsCertificateInvalid(t *testing.T) {
 				if !assert.NoError(t, err) {
 					t.FailNow()
 				}
-				got := service.Certificate.isCertificateInvalid(context.TODO())
+				got := service.Certificate.isCertificateInvalid(t.Context())
 
 				assert.Equal(t, tt.want.b, got)
 				if !assert.Equal(t, tt.want.e, err) {

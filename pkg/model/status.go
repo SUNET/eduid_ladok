@@ -16,7 +16,7 @@ type Status struct {
 	Healthy                   bool      `json:"healthy,omitempty"`
 	Status                    string    `json:"status,omitempty"`
 	Message                   string    `json:"message,omitempty"`
-	Timestamp                 time.Time `json:"timestamp,omitempty"`
+	Timestamp                 time.Time `json:"timestamp"`
 	ClientCertificateWarnings []string  `json:"client_certificates,omitempty"`
 }
 
@@ -48,7 +48,7 @@ type MonitoringCertClients map[string]*MonitoringCertClient
 type MonitoringCertClient struct {
 	Valid       bool      `json:"valid,omitempty"`
 	Fingerprint string    `json:"fingerprint,omitempty"`
-	NotAfter    time.Time `json:"not_after,omitempty"`
+	NotAfter    time.Time `json:"not_after"`
 	DaysLeft    int       `json:"days_left,omitempty"`
-	LastChecked time.Time `json:"last_checked,omitempty"`
+	LastChecked time.Time `json:"last_checked"`
 }

@@ -9,10 +9,10 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/SUNET/goladok3/ladoktypes"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 	"github.com/go-playground/validator/v10"
-	"github.com/masv3971/goladok3/ladoktypes"
 )
 
 // Service is the service object for httpserver
@@ -77,7 +77,7 @@ func New(ctx context.Context, config *model.Cfg, api *apiv1.Client, logger *logg
 	return s, nil
 }
 
-func (s *Service) regEndpoint(ctx context.Context, path, method string, handler func(context.Context, *gin.Context) (interface{}, error)) {
+func (s *Service) regEndpoint(ctx context.Context, path, method string, handler func(context.Context, *gin.Context) (any, error)) {
 	s.gin.Handle(method, path, func(c *gin.Context) {
 		res, err := handler(ctx, c)
 
@@ -102,7 +102,7 @@ func (s *Service) regEndpoint(ctx context.Context, path, method string, handler 
 	})
 }
 
-func renderContent(c *gin.Context, code int, data interface{}) {
+func renderContent(c *gin.Context, code int, data any) {
 	switch c.NegotiateFormat(gin.MIMEJSON, "*/*") {
 	case gin.MIMEJSON:
 		c.JSON(code, data)

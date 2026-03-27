@@ -64,6 +64,12 @@ eduid:
         host: 8080
 `)
 
+func testLog(t *testing.T) *logger.Logger {
+	return &logger.Logger{
+		Logger: *zaptest.NewLogger(t, zaptest.Level(zap.PanicLevel)),
+	}
+}
+
 func TestParse(t *testing.T) {
 	tempDir := t.TempDir()
 
@@ -90,12 +96,8 @@ func TestParse(t *testing.T) {
 		err := yaml.Unmarshal(mockConfig, want)
 		assert.NoError(t, err)
 
-		testLog := logger.Logger{
-			Logger: *zaptest.NewLogger(t, zaptest.Level(zap.PanicLevel)),
-		}
-
 		t.Run(tt.name, func(t *testing.T) {
-			cfg, err := Parse(&testLog)
+			cfg, err := Parse(testLog(t))
 			assert.NoError(t, err)
 
 			assert.Equal(t, &want.EduID.Worker.Ladok, cfg)
@@ -103,4 +105,63 @@ func TestParse(t *testing.T) {
 		})
 	}
 
+}
+
+func TestParse_Errors(t *testing.T) {
+	tts := []struct {
+		name    string
+		envVal  string
+		setup   func(t *testing.T) string
+		wantErr string
+	}{
+		{
+			name:    "missing env variable",
+			envVal:  "",
+			setup:   func(t *testing.T) string { return "" },
+			wantErr: "required",
+		},
+		{
+			name:   "file does not exist",
+			envVal: "set",
+			setup: func(t *testing.T) string {
+				return "/tmp/nonexistent_config_file_12345.yaml"
+			},
+			wantErr: "no such file",
+		},
+		{
+			name:   "path is a directory",
+			envVal: "set",
+			setup: func(t *testing.T) string {
+				return t.TempDir()
+			},
+			wantErr: "is a directory",
+		},
+		{
+			name:   "invalid yaml",
+			envVal: "set",
+			setup: func(t *testing.T) string {
+				path := fmt.Sprintf("%s/bad.cfg", t.TempDir())
+				os.WriteFile(path, []byte("{{invalid yaml"), 0666)
+				return path
+			},
+			wantErr: "",
+		},
+	}
+
+	for _, tt := range tts {
+		t.Run(tt.name, func(t *testing.T) {
+			path := tt.setup(t)
+			if tt.envVal == "" {
+				os.Unsetenv("EDUID_CONFIG_YAML")
+			} else {
+				os.Setenv("EDUID_CONFIG_YAML", path)
+			}
+
+			_, err := Parse(testLog(t))
+			assert.Error(t, err)
+			if tt.wantErr != "" {
+				assert.Contains(t, err.Error(), tt.wantErr)
+			}
+		})
+	}
 }

@@ -9,7 +9,7 @@ import (
 	"eduid_ladok/pkg/logger"
 	"eduid_ladok/pkg/model"
 
-	"github.com/masv3971/goladok3"
+	"github.com/SUNET/goladok3"
 )
 
 // RestService holds the rest service
