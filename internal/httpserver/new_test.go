@@ -6,8 +6,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"go.uber.org/zap"
-	"go.uber.org/zap/zaptest"
 )
 
 func TestNewService(t *testing.T) {
@@ -21,7 +19,7 @@ func TestNewService(t *testing.T) {
 
 	for _, tt := range tts {
 		t.Run(tt.name, func(t *testing.T) {
-			log := &logger.Logger{Logger: *zaptest.NewLogger(t, zaptest.Level(zap.PanicLevel))}
+			log := logger.NewForTest(t)
 			cfg := &model.Cfg{Production: tt.production}
 			cfg.APIServer.Host = "127.0.0.1:0"
 

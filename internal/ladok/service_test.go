@@ -19,8 +19,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"go.uber.org/zap"
-	"go.uber.org/zap/zaptest"
 )
 
 func mockGenericEndpointServer(t *testing.T, mux *http.ServeMux, contentType, method, url, param string, payload []byte, statusCode int) {
@@ -283,9 +281,7 @@ func mockService(t *testing.T, statusCode, notBefore, notAfter int, tempDir stri
 	cfg.Ladok.Atom.Periodicity = 60
 
 	mockCertificate(t, notBefore, notAfter, tempDir)
-	testLog := logger.Logger{
-		Logger: *zaptest.NewLogger(t, zaptest.Level(zap.PanicLevel)),
-	}
+	testLog := logger.NewForTest(t)
 
 	service, err := New(t.Context(), cfg, &sync.WaitGroup{}, "testSchoolName", ladokToAggregateChan, testLog.New("test"))
 	if err != nil {

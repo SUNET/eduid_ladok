@@ -12,8 +12,6 @@ import (
 	"github.com/SUNET/goladok3/ladokmocks"
 	"github.com/SUNET/goladok3/ladoktypes"
 	"github.com/stretchr/testify/assert"
-	"go.uber.org/zap"
-	"go.uber.org/zap/zaptest"
 )
 
 func TestSchoolInfo(t *testing.T) {
@@ -225,7 +223,7 @@ func TestLadokInfo_Success(t *testing.T) {
 }
 
 func TestNew(t *testing.T) {
-	log := &logger.Logger{Logger: *zaptest.NewLogger(t, zaptest.Level(zap.PanicLevel))}
+	log := logger.NewForTest(t)
 	cfg := &model.Cfg{}
 
 	client, err := New(t.Context(), cfg, nil, log)

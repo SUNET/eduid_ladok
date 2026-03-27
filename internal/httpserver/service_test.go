@@ -14,8 +14,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
-	"go.uber.org/zap"
-	"go.uber.org/zap/zaptest"
 )
 
 type mockApiv1 struct {
@@ -43,7 +41,7 @@ func (m *mockApiv1) MonitoringCertClient(_ context.Context) (*model.MonitoringCe
 }
 
 func testLogger(t *testing.T) *logger.Logger {
-	return &logger.Logger{Logger: *zaptest.NewLogger(t, zaptest.Level(zap.PanicLevel))}
+	return logger.NewForTest(t)
 }
 
 func setupTestService(t *testing.T, api Apiv1) *Service {

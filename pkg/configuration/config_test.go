@@ -8,8 +8,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"go.uber.org/zap"
-	"go.uber.org/zap/zaptest"
 	"gopkg.in/yaml.v3"
 )
 
@@ -65,9 +63,7 @@ eduid:
 `)
 
 func testLog(t *testing.T) *logger.Logger {
-	return &logger.Logger{
-		Logger: *zaptest.NewLogger(t, zaptest.Level(zap.PanicLevel)),
-	}
+	return logger.NewForTest(t)
 }
 
 func TestParse(t *testing.T) {
