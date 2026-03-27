@@ -1,8 +1,11 @@
 package logger
 
 import (
+	"testing"
+
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
+	"go.uber.org/zap/zaptest"
 )
 
 // Logger for portability
@@ -26,6 +29,11 @@ func New(name string, production bool) *Logger {
 	log, _ := config.Build()
 
 	return &Logger{Logger: *log.Named(name)}
+}
+
+// NewForTest creates a logger suitable for testing that writes to the test's output.
+func NewForTest(t *testing.T) *Logger {
+	return &Logger{Logger: *zaptest.NewLogger(t, zaptest.Level(zap.PanicLevel))}
 }
 
 // NewSimple creates a simple logger for barbaric purposes

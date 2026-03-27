@@ -10,13 +10,11 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
-	"go.uber.org/zap"
-	"go.uber.org/zap/zaptest"
 )
 
 func bindTestService(t *testing.T) *Service {
 	gin.SetMode(gin.TestMode)
-	log := &logger.Logger{Logger: *zaptest.NewLogger(t, zaptest.Level(zap.PanicLevel))}
+	log := logger.NewForTest(t)
 	return &Service{logger: log}
 }
 
