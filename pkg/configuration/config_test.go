@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v3"
 )
 
@@ -80,24 +81,22 @@ func TestParse(t *testing.T) {
 	}
 
 	for _, tt := range tts {
-		path := fmt.Sprintf("%s/test.cfg", tempDir)
-		if err := os.WriteFile(path, mockConfig, 0666); err != nil {
-			assert.NoError(t, err)
-		}
-		if tt.setEnvVariable {
-			os.Setenv("EDUID_CONFIG_YAML", path)
-		}
-
-		want := &model.Config{}
-		err := yaml.Unmarshal(mockConfig, want)
-		assert.NoError(t, err)
-
 		t.Run(tt.name, func(t *testing.T) {
+			path := fmt.Sprintf("%s/test.cfg", tempDir)
+			require.NoError(t, os.WriteFile(path, mockConfig, 0666))
+
+			if tt.setEnvVariable {
+				t.Setenv("EDUID_CONFIG_YAML", path)
+			}
+
+			want := &model.Config{}
+			err := yaml.Unmarshal(mockConfig, want)
+			require.NoError(t, err)
+
 			cfg, err := Parse(testLog(t))
 			assert.NoError(t, err)
 
 			assert.Equal(t, &want.EduID.Worker.Ladok, cfg)
-
 		})
 	}
 
@@ -137,7 +136,7 @@ func TestParse_Errors(t *testing.T) {
 			envVal: "set",
 			setup: func(t *testing.T) string {
 				path := fmt.Sprintf("%s/bad.cfg", t.TempDir())
-				os.WriteFile(path, []byte("{{invalid yaml"), 0666)
+				require.NoError(t, os.WriteFile(path, []byte("{{invalid yaml"), 0666))
 				return path
 			},
 			wantErr: "",
@@ -147,10 +146,8 @@ func TestParse_Errors(t *testing.T) {
 	for _, tt := range tts {
 		t.Run(tt.name, func(t *testing.T) {
 			path := tt.setup(t)
-			if tt.envVal == "" {
-				os.Unsetenv("EDUID_CONFIG_YAML")
-			} else {
-				os.Setenv("EDUID_CONFIG_YAML", path)
+			if tt.envVal != "" {
+				t.Setenv("EDUID_CONFIG_YAML", path)
 			}
 
 			_, err := Parse(testLog(t))
