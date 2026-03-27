@@ -7,7 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func (s *Service) bindRequest(c *gin.Context, v interface{}) error {
+func (s *Service) bindRequest(c *gin.Context, v any) error {
 	if c.ContentType() == gin.MIMEJSON {
 		if err := c.ShouldBindJSON(v); err != nil {
 			s.logger.Warn("bind_json_error", "error", err)
@@ -22,10 +22,10 @@ func (s *Service) bindRequest(c *gin.Context, v interface{}) error {
 	return c.ShouldBindUri(v)
 }
 
-func (s *Service) bindRequestQuery(c *gin.Context, v interface{}) error {
+func (s *Service) bindRequestQuery(c *gin.Context, v any) error {
 	refV := reflect.ValueOf(v).Elem()
 	refT := reflect.ValueOf(v).Elem().Type()
-	for i := 0; i < refT.NumField(); i++ {
+	for i := range refT.NumField() {
 		field := refT.Field(i)
 		fieldType := field.Type
 		fieldKey := field.Tag.Get("form")

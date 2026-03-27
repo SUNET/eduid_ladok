@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/masv3971/goladok3"
+	"github.com/SUNET/goladok3"
 )
 
 // RequestLadokInfo request

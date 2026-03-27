@@ -5,8 +5,8 @@ import (
 	"eduid_ladok/pkg/helpers"
 	"eduid_ladok/pkg/model"
 
-	"github.com/masv3971/goladok3"
-	"github.com/masv3971/goladok3/ladoktypes"
+	"github.com/SUNET/goladok3"
+	"github.com/SUNET/goladok3/ladoktypes"
 )
 
 func (s *Service) run(ctx context.Context) {

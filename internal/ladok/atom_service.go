@@ -8,7 +8,7 @@ import (
 	"eduid_ladok/pkg/model"
 
 	"github.com/go-redis/redis/v8"
-	"github.com/masv3971/goladok3"
+	"github.com/SUNET/goladok3"
 )
 
 // AtomService holds the service object

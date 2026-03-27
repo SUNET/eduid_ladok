@@ -8,8 +8,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"go.uber.org/zap"
-	"go.uber.org/zap/zaptest"
+	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v3"
 )
 
@@ -64,6 +63,10 @@ eduid:
         host: 8080
 `)
 
+func testLog(t *testing.T) *logger.Logger {
+	return logger.NewForTest(t)
+}
+
 func TestParse(t *testing.T) {
 	tempDir := t.TempDir()
 
@@ -78,29 +81,80 @@ func TestParse(t *testing.T) {
 	}
 
 	for _, tt := range tts {
-		path := fmt.Sprintf("%s/test.cfg", tempDir)
-		if err := os.WriteFile(path, mockConfig, 0666); err != nil {
-			assert.NoError(t, err)
-		}
-		if tt.setEnvVariable {
-			os.Setenv("EDUID_CONFIG_YAML", path)
-		}
-
-		want := &model.Config{}
-		err := yaml.Unmarshal(mockConfig, want)
-		assert.NoError(t, err)
-
-		testLog := logger.Logger{
-			Logger: *zaptest.NewLogger(t, zaptest.Level(zap.PanicLevel)),
-		}
-
 		t.Run(tt.name, func(t *testing.T) {
-			cfg, err := Parse(&testLog)
+			path := fmt.Sprintf("%s/test.cfg", tempDir)
+			require.NoError(t, os.WriteFile(path, mockConfig, 0666))
+
+			if tt.setEnvVariable {
+				t.Setenv("EDUID_CONFIG_YAML", path)
+			}
+
+			want := &model.Config{}
+			err := yaml.Unmarshal(mockConfig, want)
+			require.NoError(t, err)
+
+			cfg, err := Parse(testLog(t))
 			assert.NoError(t, err)
 
 			assert.Equal(t, &want.EduID.Worker.Ladok, cfg)
-
 		})
 	}
 
+}
+
+func TestParse_Errors(t *testing.T) {
+	tts := []struct {
+		name    string
+		envVal  string
+		setup   func(t *testing.T) string
+		wantErr string
+	}{
+		{
+			name:    "missing env variable",
+			envVal:  "",
+			setup:   func(t *testing.T) string { return "" },
+			wantErr: "required",
+		},
+		{
+			name:   "file does not exist",
+			envVal: "set",
+			setup: func(t *testing.T) string {
+				return "/tmp/nonexistent_config_file_12345.yaml"
+			},
+			wantErr: "no such file",
+		},
+		{
+			name:   "path is a directory",
+			envVal: "set",
+			setup: func(t *testing.T) string {
+				return t.TempDir()
+			},
+			wantErr: "is a directory",
+		},
+		{
+			name:   "invalid yaml",
+			envVal: "set",
+			setup: func(t *testing.T) string {
+				path := fmt.Sprintf("%s/bad.cfg", t.TempDir())
+				require.NoError(t, os.WriteFile(path, []byte("{{invalid yaml"), 0666))
+				return path
+			},
+			wantErr: "",
+		},
+	}
+
+	for _, tt := range tts {
+		t.Run(tt.name, func(t *testing.T) {
+			path := tt.setup(t)
+			if tt.envVal != "" {
+				t.Setenv("EDUID_CONFIG_YAML", path)
+			}
+
+			_, err := Parse(testLog(t))
+			assert.Error(t, err)
+			if tt.wantErr != "" {
+				assert.Contains(t, err.Error(), tt.wantErr)
+			}
+		})
+	}
 }

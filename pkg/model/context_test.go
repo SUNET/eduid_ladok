@@ -1,7 +1,6 @@
 package model
 
 import (
-	"context"
 	"testing"
 
 	"github.com/gin-gonic/gin"
@@ -10,11 +9,11 @@ import (
 
 func TestCopyTraceID(t *testing.T) {
 	ginContext := &gin.Context{
-		Keys: map[string]interface{}{
+		Keys: map[any]any{
 			"sunet-request-id": "test-uuid",
 		},
 	}
 
-	ctx := CopyTraceID(context.Background(), ginContext)
+	ctx := CopyTraceID(t.Context(), ginContext)
 	assert.Equal(t, "test-uuid", ctx.Value(ContextKey("sunet-request-id")))
 }

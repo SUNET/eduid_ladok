@@ -9,8 +9,8 @@ import (
 	"eduid_ladok/pkg/model"
 
 	"github.com/go-redis/redis/v8"
-	"github.com/masv3971/goladok3"
-	"github.com/masv3971/goladok3/ladoktypes"
+	"github.com/SUNET/goladok3"
+	"github.com/SUNET/goladok3/ladoktypes"
 )
 
 func (s *AtomService) run(ctx context.Context) {

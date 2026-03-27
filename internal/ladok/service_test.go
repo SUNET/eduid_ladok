@@ -12,15 +12,13 @@ import (
 	"sync"
 	"testing"
 
+	"github.com/SUNET/goladok3"
+	"github.com/SUNET/goladok3/ladokmocks"
+	"github.com/SUNET/goladok3/ladoktypes"
 	"github.com/go-redis/redismock/v8"
-	"github.com/masv3971/goladok3"
-	"github.com/masv3971/goladok3/ladokmocks"
-	"github.com/masv3971/goladok3/ladoktypes"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"go.uber.org/zap"
-	"go.uber.org/zap/zaptest"
 )
 
 func mockGenericEndpointServer(t *testing.T, mux *http.ServeMux, contentType, method, url, param string, payload []byte, statusCode int) {
@@ -149,6 +147,14 @@ func mockLadokHTTPServer(t *testing.T, statusCode int) *httptest.Server {
 			mockGenericEndpointServer(t, mux, endpoint.contentType, endpoint.method, endpoint.url, endpoint.param, endpoint.serverReturnPayload, endpoint.statusCode)
 		}
 	}
+
+	// Register endpoint without trailing slash for grunddata/larosatesinformation
+	mux.HandleFunc("/kataloginformation/grunddata/larosatesinformation", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", goladok3.ContentTypeKataloginformationJSON)
+		w.WriteHeader(statusCode)
+		w.Write(ladokmocks.JSONKataloginformationGrunddataLarosateinformation)
+	})
+
 	return server
 }
 
@@ -158,9 +164,9 @@ func TestMockEndpoints(t *testing.T) {
 
 	tts := []struct {
 		name      string
-		want      interface{}
-		fn        interface{}
-		attribute interface{}
+		want      any
+		fn        any
+		attribute any
 	}{
 		{
 			name:      "/handelser/feed/recent",
@@ -209,49 +215,49 @@ func TestMockEndpoints(t *testing.T) {
 			switch tt.fn.(type) {
 			case func(context.Context) (*ladoktypes.SuperFeed, *http.Response, error):
 				f := tt.fn.(func(context.Context) (*ladoktypes.SuperFeed, *http.Response, error))
-				reply, _, err := f(context.TODO())
+				reply, _, err := f(t.Context())
 				if !assert.NoError(t, err) {
 					t.FailNow()
 				}
 				assert.Equal(t, tt.want, reply)
 			case func(context.Context, int) (*ladoktypes.SuperFeed, *http.Response, error):
 				f := tt.fn.(func(context.Context, int) (*ladoktypes.SuperFeed, *http.Response, error))
-				reply, _, err := f(context.TODO(), tt.attribute.(int))
+				reply, _, err := f(t.Context(), tt.attribute.(int))
 				if !assert.NoError(t, err) {
 					t.FailNow()
 				}
 				assert.Equal(t, tt.want, reply)
 			case func(context.Context, *goladok3.HistoricalReq) (*ladoktypes.SuperFeed, *http.Response, error):
 				f := tt.fn.(func(context.Context, *goladok3.HistoricalReq) (*ladoktypes.SuperFeed, *http.Response, error))
-				reply, _, err := f(context.TODO(), &goladok3.HistoricalReq{ID: tt.attribute.(int)})
+				reply, _, err := f(t.Context(), &goladok3.HistoricalReq{ID: tt.attribute.(int)})
 				if !assert.NoError(t, err) {
 					t.FailNow()
 				}
 				assert.Equal(t, tt.want, reply)
 			case func(context.Context) (*ladoktypes.KataloginformationAnvandareAutentiserad, *http.Response, error):
 				f := tt.fn.(func(ctx context.Context) (*ladoktypes.KataloginformationAnvandareAutentiserad, *http.Response, error))
-				reply, _, err := f(context.TODO())
+				reply, _, err := f(t.Context())
 				if !assert.NoError(t, err) {
 					t.FailNow()
 				}
 				assert.Equal(t, tt.want, reply)
 			case func(context.Context) (*ladoktypes.KataloginformationAnvandarbehorighetEgna, *http.Response, error):
 				f := tt.fn.(func(context.Context) (*ladoktypes.KataloginformationAnvandarbehorighetEgna, *http.Response, error))
-				reply, _, err := f(context.TODO())
+				reply, _, err := f(t.Context())
 				if !assert.NoError(t, err) {
 					t.FailNow()
 				}
 				assert.Equal(t, tt.want, reply)
 			case func(context.Context, *goladok3.GetBehorighetsprofilerReq) (*ladoktypes.KataloginformationBehorighetsprofil, *http.Response, error):
 				f := tt.fn.(func(context.Context, *goladok3.GetBehorighetsprofilerReq) (*ladoktypes.KataloginformationBehorighetsprofil, *http.Response, error))
-				reply, _, err := f(context.TODO(), &goladok3.GetBehorighetsprofilerReq{UID: tt.attribute.(string)})
+				reply, _, err := f(t.Context(), &goladok3.GetBehorighetsprofilerReq{UID: tt.attribute.(string)})
 				if !assert.NoError(t, err) {
 					t.FailNow()
 				}
 				assert.Equal(t, tt.want, reply)
 			case func(context.Context, *goladok3.GetStudentReq) (*ladoktypes.Student, *http.Response, error):
 				f := tt.fn.(func(context.Context, *goladok3.GetStudentReq) (*ladoktypes.Student, *http.Response, error))
-				reply, _, err := f(context.TODO(), &goladok3.GetStudentReq{UID: tt.attribute.(string)})
+				reply, _, err := f(t.Context(), &goladok3.GetStudentReq{UID: tt.attribute.(string)})
 				if !assert.NoError(t, err) {
 					t.FailNow()
 				}
@@ -275,11 +281,9 @@ func mockService(t *testing.T, statusCode, notBefore, notAfter int, tempDir stri
 	cfg.Ladok.Atom.Periodicity = 60
 
 	mockCertificate(t, notBefore, notAfter, tempDir)
-	testLog := logger.Logger{
-		Logger: *zaptest.NewLogger(t, zaptest.Level(zap.PanicLevel)),
-	}
+	testLog := logger.NewForTest(t)
 
-	service, err := New(context.TODO(), cfg, &sync.WaitGroup{}, "testSchoolName", ladokToAggregateChan, testLog.New("test"))
+	service, err := New(t.Context(), cfg, &sync.WaitGroup{}, "testSchoolName", ladokToAggregateChan, testLog.New("test"))
 	if err != nil {
 		return nil, nil, nil, err
 	}

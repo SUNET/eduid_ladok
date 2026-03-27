@@ -1,7 +1,6 @@
 package ladok
 
 import (
-	"context"
 	"strconv"
 	"testing"
 
@@ -35,7 +34,7 @@ func TestAtomRun(t *testing.T) {
 				redisMock.ExpectHSet("testSchoolName", "latest", key).SetVal(int64(key))
 			}
 
-			service.Atom.run(context.TODO())
+			service.Atom.run(t.Context())
 
 			assert.Equal(t, tt.queueLength, len(service.Atom.Channel))
 
@@ -44,6 +43,39 @@ func TestAtomRun(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestAtomRunNoNewEntries(t *testing.T) {
+	tts := []struct {
+		name     string
+		latestID int
+	}{
+		{
+			name:     "no new entries - same ID",
+			latestID: 100,
+		},
+	}
+
+	for _, tt := range tts {
+		t.Run(tt.name, func(t *testing.T) {
+			service, server, redisMock, _ := mockService(t, 200, 0, 100, t.TempDir())
+			defer server.Close()
+			redisMock.ExpectHGet("testSchoolName", "latest").SetVal(strconv.Itoa(tt.latestID))
+
+			service.Atom.run(t.Context())
+
+			assert.Equal(t, 0, len(service.Atom.Channel))
+		})
+	}
+}
+
+func TestAtomRunServerError(t *testing.T) {
+	service, server, _, _ := mockService(t, 500, 0, 100, t.TempDir())
+	defer server.Close()
+
+	// Should handle error gracefully without panic
+	service.Atom.run(t.Context())
+	assert.Equal(t, 0, len(service.Atom.Channel))
 }
 
 func TestAddToCache(t *testing.T) {
@@ -65,11 +97,11 @@ func TestAddToCache(t *testing.T) {
 
 			redisMock.ExpectHSet("testSchoolName", "latest", tt.have).SetVal(int64(tt.have))
 			redisMock.ExpectHGet("testSchoolName", "latest").SetVal(strconv.Itoa(tt.have))
-			err := service.Atom.addToCache(context.TODO(), tt.have)
+			err := service.Atom.addToCache(t.Context(), tt.have)
 			assert.NoError(t, err)
 
 			got, err := service.Atom.db.HGet(
-				context.TODO(),
+				t.Context(),
 				"testSchoolName",
 				"latest",
 			).Int()
@@ -122,11 +154,9 @@ func TestUnprocessedIDs(t *testing.T) {
 	for _, tt := range tts {
 		t.Run(tt.name, func(t *testing.T) {
 			service, _, redisMock, _ := mockService(t, 200, 0, 100, t.TempDir())
-			ctx := context.Background()
-
 			redisMock.ExpectHGet("testSchoolName", "latest").SetVal(strconv.Itoa(tt.latestID))
 
-			ids, err := service.Atom.unprocessedIDs(ctx, tt.currentID)
+			ids, err := service.Atom.unprocessedIDs(t.Context(), tt.currentID)
 			if !assert.NoError(t, err) {
 				t.FailNow()
 			}
@@ -160,7 +190,7 @@ func TestLatestID(t *testing.T) {
 
 			redisMock.ExpectHGet("testSchoolName", "latest").SetVal(strconv.Itoa(tt.want))
 
-			got, err := service.Atom.latestID(context.TODO())
+			got, err := service.Atom.latestID(t.Context())
 			assert.NoError(t, err)
 
 			assert.Equal(t, tt.want, got)

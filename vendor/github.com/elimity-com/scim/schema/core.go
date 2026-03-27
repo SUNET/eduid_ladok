@@ -291,6 +291,30 @@ func (a CoreAttribute) ValidateSingular(attribute interface{}) (interface{}, *er
 	}
 }
 
+// WithDescription returns a copy of the attribute with the given description.
+func (a CoreAttribute) WithDescription(description optional.String) CoreAttribute {
+	a.description = description
+	return a
+}
+
+// WithMutability returns a copy of the attribute with the given mutability.
+func (a CoreAttribute) WithMutability(mutability AttributeMutability) CoreAttribute {
+	a.mutability = mutability.m
+	return a
+}
+
+// WithRequired returns a copy of the attribute with the given required value.
+func (a CoreAttribute) WithRequired(required bool) CoreAttribute {
+	a.required = required
+	return a
+}
+
+// WithReturned returns a copy of the attribute with the given returned value.
+func (a CoreAttribute) WithReturned(returned AttributeReturned) CoreAttribute {
+	a.returned = returned.r
+	return a
+}
+
 func (a *CoreAttribute) getRawAttributes() map[string]interface{} {
 	attributes := map[string]interface{}{
 		"description": a.description.Value(),
@@ -315,7 +339,7 @@ func (a *CoreAttribute) getRawAttributes() map[string]interface{} {
 		rawSubAttributes = append(rawSubAttributes, subAttr.getRawAttributes())
 	}
 
-	if a.subAttributes != nil && len(a.subAttributes) != 0 {
+	if len(a.subAttributes) != 0 {
 		attributes["subAttributes"] = rawSubAttributes
 	}
 
@@ -330,7 +354,7 @@ func (a *CoreAttribute) getRawAttributes() map[string]interface{} {
 func (a CoreAttribute) validate(attribute interface{}) (interface{}, *errors.ScimError) {
 	// whether or not the attribute is required.
 	if attribute == nil {
-		if !a.required {
+		if !a.required || a.mutability == attributeMutabilityReadOnly {
 			return nil, nil
 		}
 

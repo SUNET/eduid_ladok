@@ -1,8 +1,11 @@
 package logger
 
 import (
+	"testing"
+
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
+	"go.uber.org/zap/zaptest"
 )
 
 // Logger for portability
@@ -28,6 +31,11 @@ func New(name string, production bool) *Logger {
 	return &Logger{Logger: *log.Named(name)}
 }
 
+// NewForTest creates a logger suitable for testing that writes to the test's output.
+func NewForTest(t *testing.T) *Logger {
+	return &Logger{Logger: *zaptest.NewLogger(t, zaptest.Level(zap.PanicLevel))}
+}
+
 // NewSimple creates a simple logger for barbaric purposes
 func NewSimple(name string) *Logger {
 	return &Logger{Logger: *zap.L().Named(name)}
@@ -39,26 +47,26 @@ func (l *Logger) New(path string) *Logger {
 }
 
 // Warn log
-func (l *Logger) Warn(msg string, args ...interface{}) {
+func (l *Logger) Warn(msg string, args ...any) {
 	l.Logger.Sugar().Warnw(msg, args...)
 }
 
 // Error log
-func (l *Logger) Error(msg string, args ...interface{}) {
+func (l *Logger) Error(msg string, args ...any) {
 	l.Logger.Sugar().Errorw(msg, args...)
 }
 
 // Fatal log
-func (l *Logger) Fatal(msg string, args ...interface{}) {
+func (l *Logger) Fatal(msg string, args ...any) {
 	l.Logger.Sugar().Fatalw(msg, args...)
 }
 
 // Debug log
-func (l *Logger) Debug(msg string, args ...interface{}) {
+func (l *Logger) Debug(msg string, args ...any) {
 	l.Logger.Sugar().Debugw(msg, args...)
 }
 
 // Info log
-func (l *Logger) Info(msg string, args ...interface{}) {
+func (l *Logger) Info(msg string, args ...any) {
 	l.Logger.Sugar().Infow(msg, args...)
 }
